@@ -85,27 +85,26 @@ The easy solution is to `import mujoco_py` _before_ `import glfw`.
     cext_so_path = builder.get_so_file_path()
 
     #lockpath = os.path.join(os.path.dirname(cext_so_path), 'mujocopy-buildlock')
-    lockpath = os.path.join(os.getcwd(), 'mujocopy-buildlock')
-    print("lockpath = {}".format(lockpath))
+    #lockpath = os.path.join(os.getcwd(), 'mujocopy-buildlock')
+    print("skipping lock")
 
-    with LockFile(lockpath):
-        mod = None
-        force_rebuild = os.environ.get('MUJOCO_PY_FORCE_REBUILD')
-        if force_rebuild:
-            # Try to remove the old file, ignore errors if it doesn't exist
-            print("Removing old mujoco_py cext", cext_so_path)
-            try:
-                os.remove(cext_so_path)
-            except OSError:
-                pass
-        if exists(cext_so_path):
-            try:
-                mod = load_dynamic_ext('cymj', cext_so_path)
-            except ImportError:
-                print("Import error. Trying to rebuild mujoco_py.")
-        if mod is None:
-            cext_so_path = builder.build()
+    mod = None
+    force_rebuild = os.environ.get('MUJOCO_PY_FORCE_REBUILD')
+    if force_rebuild:
+        # Try to remove the old file, ignore errors if it doesn't exist
+        print("Removing old mujoco_py cext", cext_so_path)
+        try:
+            os.remove(cext_so_path)
+        except OSError:
+            pass
+    if exists(cext_so_path):
+        try:
             mod = load_dynamic_ext('cymj', cext_so_path)
+        except ImportError:
+            print("Import error. Trying to rebuild mujoco_py.")
+    if mod is None:
+        cext_so_path = builder.build()
+        mod = load_dynamic_ext('cymj', cext_so_path)
     return mod
 
 
